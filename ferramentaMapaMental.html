@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+</head>
+
+<body>
+    <canvas width="1800" height="800" id="bloco"></canvas>
+    <button id="btnCaixa">Adicionar Caixa</button>
+    <button id="addLine">Adicionar Linha</button>
+    <input type="color" name="colorSelector" id="colorSelector">
+    <!-- <span id="listArray"></span> -->
+    <script>
+        var cv, cx, objetos, objetoAtual = null, objetoSelecionado = null;
+        var historicoSelecao;
+        var inicioX = 0, inicioY = 0;
+        var btn = document.getElementById('btnCaixa');
+
+        //cv = caixa de fundo
+        //cx = caixa de fundo como objeto 2d
+        window.onload = function () {
+            objetos = [];
+            historicoSelecao = [];
+            cv = document.getElementById('bloco');
+            cx = cv.getContext('2d');
+
+            //Objetos dentro do objeto 2d
+            objetos.push({ x: 0, y: 0, width: 100, height: 200, color: '#00f' });
+            objetos.push({ x: 300, y: 150, width: 50, height: 100, color: '#f00' });
+            actualizar();
+
+            cv.onmousedown = function (event) {
+                // console.log(objetos[0].x + " Posicao azul x");
+                // console.log(event.clientX + " Posicao mouse x");
+                desselecionar = false;
+                for (var i = 0; i < objetos.length; i++) {
+                    if (objetos[i].x < event.clientX
+                        && (objetos[i].width + objetos[i].x > event.clientX)
+                        && objetos[i].y < event.clientY
+                        && (objetos[i].height + objetos[i].y > event.clientY)) {
+                        objetoAtual = objetos[i];
+                        inicioY = event.clientY - objetos[i].y;
+                        inicioX = event.clientX - objetos[i].x;
+                        break;
+                        desselecionar = false;
+                    } else {
+                        desselecionar = true;
+                    }
+                }
+                if (desselecionar) {
+                    objetoSelecionado = null;
+                }
+                if (objetoSelecionado == null) {
+                    btn.innerText = "Adicionar caixa";
+                }
+            };
+
+            cv.onmousemove = function (event) {
+                if (objetoAtual != null) {
+                    objetoAtual.x = event.clientX - inicioX;
+                    objetoAtual.y = event.clientY - inicioY;
+                    actualizar();
+                }
+            };
+
+            cv.ondblclick = function (event) {
+                for (var i = 0; i < objetos.length; i++) {
+                    if (objetos[i].x < event.clientX
+                        && (objetos[i].width + objetos[i].x > event.clientX)
+                        && objetos[i].y < event.clientY
+                        && (objetos[i].height + objetos[i].y > event.clientY)) {
+                        objetoSelecionado = objetos[i];
+                        
+                        historicoSelecao.push(objetos[i]);
+                        if(historicoSelecao[2] != null){
+                            historicoSelecao.shift();
+                        }
+
+                        inicioY = event.clientY - objetos[i].y;
+                        inicioX = event.clientX - objetos[i].x;
+                        // alert(i);
+                        // var texto = "<br>";
+                        // historicoSelecao.forEach(function(item,indice,array){
+                        //     texto += "Item: " + (indice++) +" Cor: "+ item.color + "<br>";
+                        // });
+                        // document.getElementById('listArray').innerHTML = texto;
+                        break;
+                    }
+                }
+            }
+
+            cv.onmouseup = function (event) {
+                objetoAtual = null;
+            }
+        };
+
+        function actualizar() {
+            cx.fillStyle = '#f0f0f0';
+            cx.fillRect(0, 0, 1800, 800);
+            for (var i = 0; i < objetos.length; i++) {
+                cx.fillStyle = objetos[i].color;
+                cx.fillRect(objetos[i].x, objetos[i].y, objetos[i].width, objetos[i].height);
+            }
+        };
+
+        document.getElementById('btnCaixa').onclick = function () {
+            var color = document.getElementById('colorSelector').value;
+            objetos.push({ x: 100, y: 200, width: 100, height: 200, color: color });
+            actualizar();
+        };
+
+        document.getElementById('addLine').onclick = function () {
+            if(historicoSelecao[0].x < historicoSelecao[1].x){
+                lineStartX = historicoSelecao[0].width + historicoSelecao[0].x;
+                lineEndX = historicoSelecao[1].x;
+            }else{
+                lineStartX = historicoSelecao[1].width + historicoSelecao[1].x;
+                lineEndX = historicoSelecao[0].x;
+            }
+
+            if(historicoSelecao[0].y < historicoSelecao[1].y){
+                lineStartY = (historicoSelecao[0].height/2) + historicoSelecao[0].y;
+                lineEndY = (historicoSelecao[1].height/2) + historicoSelecao[1].y;
+            }else{
+                lineStartY = (historicoSelecao[1].height/2) + historicoSelecao[1].y;
+                lineEndY = (historicoSelecao[0].height/2) + historicoSelecao[0].y;
+            }
+
+            cx.beginPath();
+            cx.lineCap = "round";
+            cx.lineWidth = 10;
+            cx.moveTo(lineStartX, lineStartY);
+            cx.lineTo(lineEndX, lineEndY);
+            cx.stroke();
+        };
+    </script>
+</body>
+
+</html>
